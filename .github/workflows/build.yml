@@ -32,7 +32,7 @@ jobs:
           ./build.sh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v2  # 尝试使用 v2 版本
+        uses: actions/upload-artifact@v4.6.2  # 尝试使用 v4.6.2 版本
         with:
           name: nocturne-firmware
           path: /output
