@@ -27,86 +27,13 @@ jobs:
         run: |
           # 启用 QEMU 对多架构的支持
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          
-          # 验证 QEMU 注册情况
-          echo "QEMU 注册情况:"
-          cat /proc/sys/fs/binfmt_misc/qemu-aarch64 || true
-          
-          # 测试 ARM64 容器是否能正常运行
-          echo "测试 ARM64 容器:"
-          docker run --rm arm64v8/ubuntu uname -m
 
-      - name: Install Nix
+      - name: Install just
         run: |
-          # 安装 Nix 包管理器
-          curl -L https://nixos.org/nix/install | sh
-          source $HOME/.nix-profile/etc/profile.d/nix.sh
-          
-          # 配置 Nix 以支持多架构构建
-          echo "substituters = https://cache.nixos.org https://nix-community.cachix.org" | sudo tee -a /etc/nix/nix.conf
-          echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3A=" | sudo tee -a /etc/nix/nix.conf
-          
-          # 启用 flakes 支持
-          echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
-          
-          # 验证 Nix 安装
-          nix --version
+          # 安装 just 命令运行工具
+          curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to /usr/local/bin
+          just --version  # 验证安装
 
-      - name: Build kernel
+      - name: just run
         run: |
-          source $HOME/.nix-profile/etc/profile.d/nix.sh
-          cd resources/kernel
-          
-          # 检查目录内容
-          echo "Kernel 目录内容:"
-          ls -la
-          
-          # 构建内核
-          docker compose build
-          docker compose run --rm build
-
-      - name: Build image
-        run: |
-          source $HOME/.nix-profile/etc/profile.d/nix.sh
-          cd resources
-          
-          # 检查目录内容
-          echo "Resources 目录内容:"
-          ls -la
-          
-          # 设置环境变量
-          export NOCTURNE_IMAGE_VERSION="v3.0.0-beta2"
-          export NOCTURNE_UI_TAG="v3.0.0-beta2"
-          export NOCTURNED_TAG="v1.0.6"
-          export NOCTURNE_UBOOT_TOOL_TAG="v1.0.2"
-          export NOCTURNE_UBOOT_TAG="v2025.04-nocturne1"
-          export ALPINE_BRANCH="v3.21"
-          export ALPINE_MIRROR="https://dl-cdn.alpinelinux.org/alpine"
-          export DEFAULT_TIMEZONE="Etc/UTC"
-          export DEFAULT_HOSTNAME="nocturne"
-          export DEFAULT_ROOT_PASSWORD="nocturne"
-          export DEFAULT_DROPBEAR_ENABLED="true"
-          export DEFAULT_SERVICES="hostname local modules networking ntpd syslog"
-          export SYSINIT_SERVICES="rngd"
-          export BOOT_SERVICES="swap"
-          export SIZE_ROOT_FS="1280M"
-          export SIZE_DATA="990M"
-          export OUTPUT_PATH="/output"
-          export CACHE_PATH="/cache"
-          export STAGES="00 10 20 30 40 50"
-          export WORK_PATH="/work"
-          export IMAGE_PATH="${WORK_PATH}/img"
-          export RES_PATH=/resources/
-          export DEF_STAGE_PATH="${RES_PATH}/scripts/stages"
-          export ROOTFS_PATH="${WORK_PATH}/root_fs"
-          export DATAFS_PATH="${WORK_PATH}/data_fs"
-          
-          # 执行构建脚本
-          ./build.sh
-
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4  # 使用官方推荐的 v4 版本
-        with:
-          name: nocturne-firmware
-          path: /output
-          retention-days: 7  # 设置工件保留时间
+         just run
