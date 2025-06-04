@@ -19,24 +19,74 @@ jobs:
             wget \
             unzip \
             genimage \
-            pigz
+            pigz \
+            qemu-user-static \
+            binfmt-support
 
       - name: Enable QEMU multi-architecture support
         run: |
-          # 使用完整路径调用 qemu-user-static
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          # 验证 QEMU 注册情况
-          docker run --rm --privileged multiarch/qemu-user-static:register --reset
+          docker run --rm arm64v8/ubuntu uname -m
+
+      - name: Configure Nix
+        run: |
+          # 安装 Nix
+          curl -L https://nixos.org/nix/install | sh
+          source $HOME/.nix-profile/etc/profile.d/nix.sh
           
+          # 配置 Nix 以支持多架构构建
+          echo "substituters = https://cache.nixos.org https://nix-community.cachix.org" | sudo tee -a /etc/nix/nix.conf
+          echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3A=" | sudo tee -a /etc/nix/nix.conf
+          
+          # 启用 flakes 支持
+          echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
+          
+          # 验证 Nix 配置
+          nix --version
+          nix-shell --version
+
       - name: Build kernel
         run: |
+          source $HOME/.nix-profile/etc/profile.d/nix.sh
           cd resources/kernel
-          ./build.sh
+          
+          # 使用 --show-trace 选项获取更详细的错误信息
+          ./build.sh --show-trace
 
       - name: Build image
         run: |
+          source $HOME/.nix-profile/etc/profile.d/nix.sh
           cd resources
-          ./build.sh
+          
+          # 设置环境变量
+          export NOCTURNE_IMAGE_VERSION="v3.0.0-beta2"
+          export NOCTURNE_UI_TAG="v3.0.0-beta2"
+          export NOCTURNED_TAG="v1.0.6"
+          export NOCTURNE_UBOOT_TOOL_TAG="v1.0.2"
+          export NOCTURNE_UBOOT_TAG="v2025.04-nocturne1"
+          export ALPINE_BRANCH="v3.21"
+          export ALPINE_MIRROR="https://dl-cdn.alpinelinux.org/alpine"
+          export DEFAULT_TIMEZONE="Etc/UTC"
+          export DEFAULT_HOSTNAME="nocturne"
+          export DEFAULT_ROOT_PASSWORD="nocturne"
+          export DEFAULT_DROPBEAR_ENABLED="true"
+          export DEFAULT_SERVICES="hostname local modules networking ntpd syslog"
+          export SYSINIT_SERVICES="rngd"
+          export BOOT_SERVICES="swap"
+          export SIZE_ROOT_FS="1280M"
+          export SIZE_DATA="990M"
+          export OUTPUT_PATH="/output"
+          export CACHE_PATH="/cache"
+          export STAGES="00 10 20 30 40 50"
+          export WORK_PATH="/work"
+          export IMAGE_PATH="${WORK_PATH}/img"
+          export RES_PATH=/resources/
+          export DEF_STAGE_PATH="${RES_PATH}/scripts/stages"
+          export ROOTFS_PATH="${WORK_PATH}/root_fs"
+          export DATAFS_PATH="${WORK_PATH}/data_fs"
+          
+          # 使用 --show-trace 选项获取更详细的错误信息
+          ./build.sh --show-trace
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.6.2  # 尝试使用 v4.6.2 版本
