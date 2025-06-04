@@ -20,7 +20,6 @@ jobs:
             unzip \
             genimage \
             pigz
-            qemu-user-static  # 确保安装 qemu-user-static
 
       - name: Enable QEMU multi-architecture support
         run: |
