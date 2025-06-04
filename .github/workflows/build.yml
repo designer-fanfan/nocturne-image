@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    runs-on: [self-hosted, linux, arm64]  # 指定 ARM64 自托管运行器
 
     steps:
       - name: Checkout code
@@ -19,45 +19,16 @@ jobs:
             wget \
             unzip \
             genimage \
-            pigz \
-            qemu-user-static \
-            binfmt-support
-
-      - name: Enable QEMU multi-architecture support
-        run: |
-          docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
-          docker run --rm arm64v8/ubuntu uname -m
-
-      - name: Configure Nix
-        run: |
-          # 安装 Nix
-          curl -L https://nixos.org/nix/install | sh
-          source $HOME/.nix-profile/etc/profile.d/nix.sh
-          
-          # 配置 Nix 以支持多架构构建
-          echo "substituters = https://cache.nixos.org https://nix-community.cachix.org" | sudo tee -a /etc/nix/nix.conf
-          echo "trusted-public-keys = cache.nixos.org-1:6NCHdD59X431o0gWypbMrAURkbJ16ZPMQFGspcDShjY= nix-community.cachix.org-1:mB9FSh9qf2dCimDSUo8Zy7bkq5CX+/rkCWyvRCYg3A=" | sudo tee -a /etc/nix/nix.conf
-          
-          # 启用 flakes 支持
-          echo "experimental-features = nix-command flakes" | sudo tee -a /etc/nix/nix.conf
-          
-          # 验证 Nix 配置
-          nix --version
-          nix-shell --version
+            pigz
 
       - name: Build kernel
         run: |
-          source $HOME/.nix-profile/etc/profile.d/nix.sh
           cd resources/kernel
-          
-          # 使用 --show-trace 选项获取更详细的错误信息
-          ./build.sh --show-trace
+          ./build.sh
 
       - name: Build image
         run: |
-          source $HOME/.nix-profile/etc/profile.d/nix.sh
           cd resources
-          
           # 设置环境变量
           export NOCTURNE_IMAGE_VERSION="v3.0.0-beta2"
           export NOCTURNE_UI_TAG="v3.0.0-beta2"
@@ -84,9 +55,14 @@ jobs:
           export DEF_STAGE_PATH="${RES_PATH}/scripts/stages"
           export ROOTFS_PATH="${WORK_PATH}/root_fs"
           export DATAFS_PATH="${WORK_PATH}/data_fs"
-          
-          # 使用 --show-trace 选项获取更详细的错误信息
-          ./build.sh --show-trace
+          # 执行构建脚本
+          ./build.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nocturne-firmware
+          path: /output
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4.6.2  # 尝试使用 v4.6.2 版本
