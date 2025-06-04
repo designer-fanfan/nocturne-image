@@ -1,0 +1,39 @@
+name: Build Nocturne Firmware
+
+on:
+  # 可根据需求选择触发方式，这里设置为手动触发
+  workflow_dispatch: 
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up environment
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y \
+            docker-compose \
+            wget \
+            unzip \
+            genimage \
+            pigz
+
+      - name: Build kernel
+        run: |
+          cd resources/kernel
+          ./build.sh
+
+      - name: Build image
+        run: |
+          cd resources
+          ./build.sh
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
+        with:
+          name: nocturne-firmware
+          path: /output
