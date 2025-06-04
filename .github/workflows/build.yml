@@ -20,15 +20,15 @@ jobs:
             unzip \
             genimage \
             pigz
-            qemu-user-static  # 安装 QEMU 用户空间静态二进制文件
+            qemu-user-static  # 确保安装 qemu-user-static
 
       - name: Enable QEMU multi-architecture support
         run: |
-          # 启用 QEMU 对多架构的支持
+          # 使用完整路径调用 qemu-user-static
           docker run --rm --privileged multiarch/qemu-user-static --reset -p yes
           # 验证 QEMU 注册情况
           docker run --rm --privileged multiarch/qemu-user-static:register --reset
-
+          
       - name: Build kernel
         run: |
           cd resources/kernel
