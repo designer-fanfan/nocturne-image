@@ -1,8 +1,7 @@
 name: Build Nocturne Firmware
 
 on:
-  # 可根据需求选择触发方式，这里设置为手动触发
-  workflow_dispatch: 
+  workflow_dispatch:
 
 jobs:
   build:
@@ -33,7 +32,7 @@ jobs:
           ./build.sh
 
       - name: Upload artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v2  # 尝试使用 v2 版本
         with:
           name: nocturne-firmware
           path: /output
