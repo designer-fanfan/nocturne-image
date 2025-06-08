@@ -43,7 +43,7 @@ ALPINE_BRANCH=$(echo "$ALPINE_BRANCH" | sed '/^[0-9]/s/^/v/')
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 WORK_PATH="/workdir"
 IMAGE_PATH="${WORK_PATH}/img"
-export RES_PATH="${WORK_PATH}/resources"
+export RES_PATH="/etc/apk/resources"
 DEF_STAGE_PATH="${RES_PATH}/scripts/stages"
 export ROOTFS_PATH="${WORK_PATH}/root_fs"
 export DATAFS_PATH="${WORK_PATH}/data_fs"
