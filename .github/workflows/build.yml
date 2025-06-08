@@ -37,3 +37,9 @@ jobs:
       - name: just run
         run: |
          just run
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4  # 使用官方推荐的 v4 版本
+        with:
+          name: nocturne-firmware
+          path: /output
+          retention-days: 7  # 设置工件保留时间
