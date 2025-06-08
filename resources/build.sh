@@ -41,7 +41,7 @@ ALPINE_BRANCH=$(echo "$ALPINE_BRANCH" | sed '/^[0-9]/s/^/v/')
 #chmod -R 755 "$WORK_PATH"
 # static config
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-WORK_PATH="/work"
+WORK_PATH="/workdir"
 IMAGE_PATH="${WORK_PATH}/img"
 export RES_PATH="${WORK_PATH}/resources"
 DEF_STAGE_PATH="${RES_PATH}/scripts/stages"
