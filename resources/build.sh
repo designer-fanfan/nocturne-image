@@ -36,6 +36,9 @@ set -e
 ALPINE_BRANCH=$(echo "$ALPINE_BRANCH" | sed '/^[0-9]/s/^/v/')
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#创建工作目录
+mkdir -p "$WORK_PATH" "$IMAGE_PATH"
+chmod -R 755 "$WORK_PATH"
 # static config
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 WORK_PATH="/work"
